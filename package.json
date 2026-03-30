@@ -1,6 +1,6 @@
 {
   "name": "@sayedameer/bruno-openapi-sync",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Sync an OpenAPI spec into a Bruno collection with interactive git-style diffs",
   "type": "module",
   "main": "dist/sync.js",
