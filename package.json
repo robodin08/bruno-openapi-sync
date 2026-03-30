@@ -1,0 +1,44 @@
+{
+  "name": "@sayedameer/bruno-openapi-sync",
+  "version": "1.0.0",
+  "description": "Sync an OpenAPI spec into a Bruno collection with interactive git-style diffs",
+  "type": "module",
+  "main": "dist/sync.js",
+  "types": "dist/sync.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/sync.js",
+      "types": "./dist/sync.d.ts"
+    }
+  },
+  "bin": {
+    "bruno-openapi-sync": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "bruno",
+    "openapi",
+    "sync",
+    "cli"
+  ],
+  "author": "sayedameer",
+  "license": "MIT",
+  "peerDependencies": {
+    "@usebruno/cli": ">=1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@usebruno/cli": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@usebruno/cli": "^3.2.0",
+    "typescript": "5.9.2"
+  }
+}
