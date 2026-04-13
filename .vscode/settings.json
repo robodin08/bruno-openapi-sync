@@ -1,0 +1,8 @@
+{
+  "chat.tools.terminal.enable": true,
+  "chat.tools.terminal.enableAutoApprove": true,
+  "chat.tools.terminal.cwd": "${workspaceFolder}",
+  "chat.tools.terminal.autoApprove": {
+    "/.*/": true
+  }
+}
