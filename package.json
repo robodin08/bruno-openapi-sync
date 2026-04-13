@@ -18,6 +18,7 @@
     "dist"
   ],
   "scripts": {
+    "start": "node dist/index.js",
     "build": "tsc",
     "prepublishOnly": "npm run build",
     "publish:npm": "npm publish --access public",
