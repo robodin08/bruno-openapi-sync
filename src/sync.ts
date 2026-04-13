@@ -55,9 +55,10 @@ export async function sync(options: SyncOptions): Promise<void> {
     throw new Error(`OpenAPI source file not found: ${sourcePath}`);
   }
 
+  const tmpDir = path.join(path.dirname(outputPath), '.bruno-sync-tmp');
+
   try {
     // Import to temp dir
-    const tmpDir = path.join(path.dirname(outputPath), '.bruno-sync-tmp');
     if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true, force: true });
     fs.mkdirSync(tmpDir, { recursive: true });
 
@@ -149,10 +150,11 @@ export async function sync(options: SyncOptions): Promise<void> {
       }
 
       console.log('\n✓ Bruno sync complete.');
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
+    } catch (e) {
+      throw e;
     }
   } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
     rl.close();
   }
 }
