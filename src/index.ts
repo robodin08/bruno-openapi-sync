@@ -1,51 +1,29 @@
 #!/usr/bin/env node
-import { parseArgs } from 'node:util';
-import { sync } from './sync.js';
 
-const { values } = parseArgs({
-  options: {
-    source: { type: 'string', short: 's' },
-    output: { type: 'string', short: 'o' },
-    yes: { type: 'boolean', short: 'y' },
-    help: { type: 'boolean', short: 'h' },
-  },
-  allowPositionals: false,
-});
+import { pathToFileURL } from "node:url";
+import { Command } from "commander";
+import packageJson from "../package.json" with { type: "json" };
+import { sync } from "./sync.js";
 
-if (values.help) {
-  console.log(`
-Usage: bruno-openapi-sync [options]
-
-Sync OpenAPI spec to Bruno collection with git-style diffs.
-
-Options:
-  -s, --source <path>  Path to OpenAPI JSON file (required)
-  -o, --output <path>  Path to Bruno output directory (required)
-  -y, --yes            Auto-accept all changes without prompting
-  -h, --help           Show this help message
-
-Examples:
-  bruno-openapi-sync -s ./openapi.json -o ./bruno
-  bruno-openapi-sync --source api/spec.json --output collections/api --yes
-`);
-  process.exit(0);
+export function createProgram(): Command {
+  const program = new Command();
+  program
+    .name("bruno-openapi-sync")
+    .version(packageJson.version)
+    .requiredOption("-s, --source <path-or-url>", "Path to the source file or URL (required)")
+    .requiredOption("-o, --output <path>", "Path to the Bruno output directory (required)")
+    .option("-n, --name <name>", "name for the imported collection")
+    .option("-i, --insecure", "disable SSL certificate verification when fetching from URLs")
+    .option("-y, --yes", "auto-accept all changes without prompting")
+    .action(sync);
+  return program;
 }
 
-if (!values.source) {
-  console.error('Error: --source is required');
-  process.exit(1);
+if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
+  createProgram()
+    .parseAsync(process.argv)
+    .catch((error: unknown) => {
+      console.error(error instanceof Error ? error.message : error);
+      process.exitCode = 1;
+    });
 }
-
-if (!values.output) {
-  console.error('Error: --output is required');
-  process.exit(1);
-}
-
-sync({
-  source: values.source,
-  output: values.output,
-  yes: values.yes,
-}).catch((e) => {
-  console.error(e.message || e);
-  process.exit(1);
-});

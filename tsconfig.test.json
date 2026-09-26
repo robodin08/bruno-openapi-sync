@@ -1,8 +1,10 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig.app.json",
   "compilerOptions": {
     "rootDir": ".",
-    "noEmit": true
+    "outDir": "dist",
+    "noEmit": true,
+    "types": ["node", "vitest/globals"]
   },
-  "include": ["src", "test", "vitest.config.ts"]
+  "include": ["src/**/*.ts", "test/**/*.ts", "vitest.config.ts", "package.json"]
 }

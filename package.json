@@ -1,32 +1,24 @@
 {
-  "name": "@sayedameer/bruno-openapi-sync",
-  "version": "1.0.3",
-  "description": "Sync an OpenAPI spec into a Bruno collection with interactive git-style diffs",
+  "name": "bruno-openapi-sync",
+  "version": "2.0.0",
+  "license": "MIT",
+  "author": "robodin08",
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "main": "dist/sync.js",
   "types": "dist/sync.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/sync.js",
-      "types": "./dist/sync.d.ts"
-    }
-  },
   "bin": {
     "bruno-openapi-sync": "dist/index.js"
   },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "start": "node dist/index.js",
-    "build": "tsc",
-    "prepublishOnly": "npm run build",
-    "publish:npm": "npm publish --access public",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "release": "node scripts/release.mjs",
-    "release:minor": "node scripts/release.mjs minor",
-    "release:major": "node scripts/release.mjs major"
+  "homepage": "https://github.com/robodin08/bruno-openapi-sync#readme",
+  "bugs": {
+    "url": "https://github.com/robodin08/bruno-openapi-sync/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robodin08/bruno-openapi-sync.git"
   },
   "keywords": [
     "bruno",
@@ -34,20 +26,34 @@
     "sync",
     "cli"
   ],
-  "author": "sayedameer",
-  "license": "MIT",
-  "peerDependencies": {
-    "@usebruno/cli": ">=1.0.0"
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -b tsconfig.app.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:typecheck": "tsc -p tsconfig.test.json --noEmit",
+    "check": "npm run build && npm run test:typecheck && npm test",
+    "prepublishOnly": "npm run build",
+    "publish:npm": "npm publish --access public",
+    "release": "node scripts/release.mjs",
+    "release:minor": "node scripts/release.mjs minor",
+    "release:major": "node scripts/release.mjs major"
   },
-  "peerDependenciesMeta": {
-    "@usebruno/cli": {
-      "optional": true
-    }
+  "files": [
+    "src",
+    "dist",
+    "package.json",
+    "README.md"
+  ],
+  "dependencies": {
+    "@usebruno/cli": "^4",
+    "commander": "^15"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0",
-    "@usebruno/cli": "^3.2.0",
-    "typescript": "5.9.2",
-    "vitest": "^4.1.4"
+    "@types/node": "^24",
+    "tsx": "^4",
+    "typescript": "^7",
+    "vitest": "^5"
   }
 }
