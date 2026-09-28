@@ -12,13 +12,12 @@
  */
 
 import { execSync } from "node:child_process";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(__dirname, "..");
-const pkgPath = path.join(root, "package.json");
+import packageJson from "../package.json" with { type: "json" };
+
+const root = process.cwd();
+
+console.log(root, process.cwd());
 
 function run(cmd, opts = {}) {
   console.log(`  $ ${cmd}`);
@@ -39,8 +38,7 @@ const args = process.argv.slice(2);
 const skipTests = args.includes("--skip-tests");
 const bumpArg = args.find((arg) => !arg.startsWith("--")) ?? "patch";
 
-const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
-const oldVersion = pkg.version;
+const oldVersion = packageJson.version;
 const newVersion = bumpVersion(oldVersion, bumpArg);
 
 if (newVersion === oldVersion) {
@@ -48,7 +46,7 @@ if (newVersion === oldVersion) {
   process.exit(1);
 }
 
-console.log(`\n🚀  Releasing ${pkg.name}  ${oldVersion} → ${newVersion}\n`);
+console.log(`\n🚀  Releasing ${packageJson.name}  ${oldVersion} → ${newVersion}\n`);
 
 try {
   const status = execSync("git status --porcelain", { cwd: root }).toString().trim();
@@ -68,9 +66,8 @@ if (skipTests) {
 }
 
 console.log("\n── 2/5  Bumping version ────────────────────────────────────────");
-pkg.version = newVersion;
-fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
-console.log(`  package.json → ${newVersion}`);
+run(`npm version ${newVersion} --no-git-tag-version`);
+console.log(`  package.json + package-lock.json → ${newVersion}`);
 
 console.log("\n── 3/5  Committing & tagging ───────────────────────────────────");
 run("git add -A");
