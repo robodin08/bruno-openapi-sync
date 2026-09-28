@@ -10,7 +10,7 @@
   "main": "dist/sync.js",
   "types": "dist/sync.d.ts",
   "bin": {
-    "bruno-openapi-sync": "dist/index.js"
+    "bruno-openapi-sync": "./dist/index.js"
   },
   "homepage": "https://github.com/robodin08/bruno-openapi-sync#readme",
   "bugs": {
