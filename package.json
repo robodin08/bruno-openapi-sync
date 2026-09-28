@@ -41,9 +41,7 @@
     "release:major": "node scripts/release.mjs major"
   },
   "files": [
-    "src",
     "dist",
-    "package.json",
     "README.md"
   ],
   "dependencies": {
