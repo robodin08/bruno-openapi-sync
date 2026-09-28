@@ -49,6 +49,9 @@ bruno-openapi-sync -s ./openapi.json -o ./bruno
 # Sync a remote YAML spec directly into a collection directory
 bruno-openapi-sync -s https://example.com/openapi.yaml -o ./bruno/public-api
 
+# Sync the Swagger Petstore example into a collection directory
+bruno-openapi-sync -s https://petstore.swagger.io/v2/swagger.json -o ./bruno/petstore
+
 # Override the collection name in opencollection.yml
 bruno-openapi-sync -s ./openapi.json -o ./bruno -n "OpenAPI definition"
 
