@@ -12,12 +12,12 @@
  */
 
 import { execSync } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import packageJson from "../package.json" with { type: "json" };
 
-const root = process.cwd();
-
-console.log(root, process.cwd());
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 function run(cmd, opts = {}) {
   console.log(`  $ ${cmd}`);
