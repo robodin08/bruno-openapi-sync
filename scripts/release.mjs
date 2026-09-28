@@ -24,6 +24,15 @@ function run(cmd, opts = {}) {
   execSync(cmd, { cwd: root, stdio: "inherit", ...opts });
 }
 
+function ensureNpmLogin() {
+  try {
+    run("npm whoami --registry=https://registry.npmjs.org/");
+  } catch {
+    console.log("  You are not logged in to npm. Starting npm login...\n");
+    run("npm login --registry=https://registry.npmjs.org/");
+  }
+}
+
 function bumpVersion(current, bump) {
   const [major, minor, patch] = current.split(".").map(Number);
   if (bump === "major") return `${major + 1}.0.0`;
@@ -65,20 +74,23 @@ if (skipTests) {
   run("npm test");
 }
 
-console.log("\n── 2/5  Bumping version ────────────────────────────────────────");
+console.log("\n── 2/6  Checking npm authentication ────────────────────────────");
+ensureNpmLogin();
+
+console.log("\n── 3/6  Bumping version ────────────────────────────────────────");
 run(`npm version ${newVersion} --no-git-tag-version`);
 console.log(`  package.json + package-lock.json → ${newVersion}`);
 
-console.log("\n── 3/5  Committing & tagging ───────────────────────────────────");
+console.log("\n── 4/6  Committing & tagging ───────────────────────────────────");
 run("git add -A");
 run(`git commit -m "release: v${newVersion}"`);
 run(`git tag v${newVersion}`);
 
-console.log("\n── 4/5  Pushing to remote ──────────────────────────────────────");
+console.log("\n── 5/6  Pushing to remote ──────────────────────────────────────");
 run("git push -u origin main");
 run("git push --tags");
 
-console.log("\n── 5/5  Publishing to npm ──────────────────────────────────────");
+console.log("\n── 6/6  Publishing to npm ──────────────────────────────────────");
 run("npm run publish:npm");
 
 console.log(`\n✅  Successfully released v${newVersion}\n`);
