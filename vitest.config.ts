@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     include: ["test/**/*.test.ts"],
     fileParallelism: false,
-    testTimeout: 60_000, // bru import can be slow on first run (npx)
+    testTimeout: 60_000,
     hookTimeout: 30_000,
     reporters: ["verbose"],
   },
