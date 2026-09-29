@@ -57,7 +57,7 @@ bruno-openapi-sync -s https://petstore.swagger.io/v2/swagger.json -o ./bruno
 
 # Override the collection name (used as the collection directory name)
 bruno-openapi-sync -s ./openapi.json -o ./bruno -n "OpenAPI definition"
-# → ./bruno/OpenAPI definition/
+# Result: ./bruno/OpenAPI definition/
 
 # Auto-accept all changes
 bruno-openapi-sync -s ./openapi.json -o ./bruno --yes

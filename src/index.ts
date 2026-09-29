@@ -2,6 +2,7 @@
 
 import { pathToFileURL } from "node:url";
 import { Command } from "commander";
+import chalk from "chalk";
 import packageJson from "../package.json" with { type: "json" };
 import { sync } from "./sync.js";
 
@@ -20,6 +21,7 @@ export function createProgram(): Command {
     .option("--json", "emit machine-readable JSON results (implies non-interactive)")
     .action(async (options) => {
       const result = await sync(options);
+
       if (options.json) {
         const jsonResult = {
           ...result,
@@ -31,8 +33,10 @@ export function createProgram(): Command {
             toPath,
           })),
         };
+
         process.stdout.write(JSON.stringify(jsonResult, null, 2) + "\n");
       }
+
       if (options.check && (result.hasChanges || result.hasConflicts)) {
         process.exitCode = 1;
       }
@@ -44,7 +48,7 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
   createProgram()
     .parseAsync(process.argv)
     .catch((error: unknown) => {
-      console.error(error instanceof Error ? error.message : error);
+      console.error(chalk.red(error instanceof Error ? error.message : String(error)));
       process.exitCode = 1;
     });
 }

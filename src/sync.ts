@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
+import chalk from "chalk";
 import { importOpenApi } from "./bru.js";
 import { pruneEmptyDirs, showDiff, walkDir } from "./filesystem.js";
 import { loadState, listBaseFiles, saveState } from "./state.js";
@@ -40,13 +41,13 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
     if (!quiet) console.log(...args);
   };
   const warn = (...args: unknown[]): void => {
-    console.warn(...args);
+    console.warn(chalk.yellow(...args.map(String)));
   };
 
   const outputRoot = path.resolve(outputDir);
 
   if (path.basename(outputRoot) === ".bruno-sync-tmp") {
-    throw new Error(`Output path cannot be ".bruno-sync-tmp" — choose a different output directory`);
+    throw new Error(`Output path cannot be ".bruno-sync-tmp" - choose a different output directory`);
   }
 
   const resolvedSource = resolveSource(source);
@@ -60,7 +61,7 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
 
     tmpDir = fs.mkdtempSync(path.join(parentDir, ".bruno-sync-tmp-"));
 
-    log(`→ Importing OpenAPI to temp dir...`);
+    log(chalk.cyan("Importing OpenAPI to temp dir..."));
     importOpenApi(source, tmpDir, name, insecure, quiet);
 
     const topLevelEntries = fs.readdirSync(tmpDir, { withFileTypes: true });
@@ -74,7 +75,7 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
     const collectionDirName = collectionDirs[0].name;
     const outputPath = path.join(outputRoot, collectionDirName);
     if (path.basename(outputPath) === ".bruno-sync-tmp") {
-      throw new Error(`Output path cannot be ".bruno-sync-tmp" — choose a different output directory`);
+      throw new Error(`Output path cannot be ".bruno-sync-tmp" - choose a different output directory`);
     }
 
     const tmpRoot = path.join(tmpDir, collectionDirName);
@@ -84,7 +85,7 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
 
     const { state, corrupted } = loadState(outputPath);
     if (corrupted) {
-      warn(`⚠ Sync state is corrupted — treating this as a fresh sync (existing files are preserved).`);
+      warn(`Warning: sync state is corrupted - treating this as a fresh sync (existing files are preserved).`);
     }
     const sourceChanged = state !== null && !corrupted && state.source !== resolvedSource;
 
@@ -94,7 +95,7 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
       baseMap = listBaseFiles(outputPath);
       if (sourceChanged) {
         detectMoves = false;
-        warn(`⚠ Source changed (${state.source} → ${resolvedSource}) — re-baselining.`);
+        warn(`Warning: source changed (${state.source} -> ${resolvedSource}) - re-baselining.`);
       }
     }
 
@@ -113,12 +114,12 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
     let aborted = false;
 
     const printConflict = (e: FileChange): void => {
-      log(`\n── Conflict: ${e.path} ──`);
-      log(`\n--- BASE (last sync) ---`);
+      log(`\n${chalk.red.bold(`Conflict: ${e.path}`)}`);
+      log(chalk.dim("\n--- BASE (last sync) ---"));
       log(e.baseContent ?? "(none)");
-      log(`\n--- CURRENT (on disk) ---`);
+      log(chalk.dim("\n--- CURRENT (on disk) ---"));
       log(e.currentContent ?? "(deleted)");
-      log(`\n--- OPENAPI (new) ---`);
+      log(chalk.dim("\n--- OPENAPI (new) ---"));
       log(e.newContent ?? "(removed)");
     };
 
@@ -140,7 +141,7 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
         case "merge": {
           const isMerge = e.kind === "merge";
           const existingFile = path.join(outputPath, e.path);
-          log(`\n── ${isMerge ? "Merged" : "Changed"}: ${e.path} ──`);
+          log(`\n${chalk.cyan(`${isMerge ? "Merged" : "Changed"}: ${e.path}`)}`);
           const viewFile = isMerge
             ? path.join(tmpDir!, `.merge-view-${changes.length}.yml`)
             : path.join(tmpRoot, e.path);
@@ -154,7 +155,7 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
           if (!acceptAll) {
             const answer = await askUser("\nApply this change? [y/N/a/q]: ");
             if (answer === "q") {
-              log("Quitting — no changes applied.");
+              log("Quitting - no changes applied.");
               aborted = true;
               changes.push({ ...e, status: "skipped" });
               break;
@@ -170,7 +171,7 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
           break;
         }
         case "delete": {
-          log(`\n── Removed from spec: ${e.path} ──`);
+          log(`\n${chalk.red(`Removed from spec: ${e.path}`)}`);
           if (!acceptAll) {
             const answer = await askUser("Delete this file? [y/N]: ");
             if (answer !== "y") {
@@ -191,7 +192,7 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
           }
           const answer = await askUser("\nResolve? [c=keep current / o=accept OpenAPI / q=abort]: ");
           if (answer === "q") {
-            log("Aborted — no changes applied.");
+            log("Aborted - no changes applied.");
             aborted = true;
             changes.push({ ...e, status: "skipped" });
           } else if (answer === "o") {
@@ -203,7 +204,7 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
           break;
         }
         case "delete-conflict": {
-          log(`\n── Conflict: ${e.path} ──`);
+          log(`\n${chalk.red.bold(`Conflict: ${e.path}`)}`);
           log(`This file was removed from the OpenAPI spec but you have local modifications.`);
           if (acceptAll) {
             log("  Kept current (conflict left unresolved).");
@@ -212,7 +213,7 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
           }
           const answer = await askUser("\nResolve? [c=keep current / o=accept OpenAPI (delete) / q=abort]: ");
           if (answer === "q") {
-            log("Aborted — no changes applied.");
+            log("Aborted - no changes applied.");
             aborted = true;
             changes.push({ ...e, status: "skipped" });
           } else if (answer === "o") {
@@ -224,8 +225,8 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
           break;
         }
         case "move-conflict": {
-          log(`\n── Conflict: ${e.path} ──`);
-          log(`This operation was moved (${e.fromPath} → ${e.toPath}) but you have local modifications.`);
+          log(`\n${chalk.red.bold(`Conflict: ${e.path}`)}`);
+          log(`This operation was moved (${e.fromPath} -> ${e.toPath}) but you have local modifications.`);
           if (acceptAll) {
             log("  Kept current location (conflict left unresolved).");
             changes.push({ ...e, status: "skipped" });
@@ -233,7 +234,7 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
           }
           const answer = await askUser("\nResolve? [c=keep current / o=accept OpenAPI (move) / q=abort]: ");
           if (answer === "q") {
-            log("Aborted — no changes applied.");
+            log("Aborted - no changes applied.");
             aborted = true;
             changes.push({ ...e, status: "skipped" });
           } else if (answer === "o") {
@@ -250,7 +251,7 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
     }
 
     if (aborted) {
-      log("\n✖ Sync aborted — collection left unchanged.");
+      log(chalk.yellow("\nSync aborted - collection left unchanged."));
       return buildResult(options, resolvedSource, outputPath, changes);
     }
 
@@ -262,9 +263,9 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
     }
 
     if (dryRun) {
-      log(check ? "\n● Check complete." : "\n● Dry run complete — no changes made.");
+      log(chalk.cyan(check ? "\nCheck complete." : "\nDry run complete - no changes made."));
     } else {
-      log("\n✓ Bruno sync complete.");
+      log(chalk.green("\nBruno sync complete."));
     }
 
     return buildResult(options, resolvedSource, outputPath, changes);
@@ -284,14 +285,14 @@ function applyChanges(outputPath: string, changes: FileChange[], log: (...args: 
       case "merge": {
         fs.mkdirSync(path.dirname(dest), { recursive: true });
         fs.writeFileSync(dest, e.finalContent ?? "");
-        log(`  ✔ ${e.kind === "create" ? "Added" : "Updated"}: ${e.path}`);
+        log(chalk.green(`  ${e.kind === "create" ? "Added" : "Updated"}: ${e.path}`));
         break;
       }
       case "delete":
       case "delete-conflict": {
         if (fs.existsSync(dest)) {
           fs.unlinkSync(dest);
-          log(`  ✖ Deleted: ${e.path}`);
+          log(chalk.red(`  Deleted: ${e.path}`));
         }
         break;
       }
@@ -299,7 +300,7 @@ function applyChanges(outputPath: string, changes: FileChange[], log: (...args: 
         if (e.finalContent !== undefined) {
           fs.mkdirSync(path.dirname(dest), { recursive: true });
           fs.writeFileSync(dest, e.finalContent);
-          log(`  ✔ Updated (OpenAPI): ${e.path}`);
+          log(chalk.green(`  Updated (OpenAPI): ${e.path}`));
         }
         break;
       }
@@ -311,7 +312,7 @@ function applyChanges(outputPath: string, changes: FileChange[], log: (...args: 
         if (fs.existsSync(fromDest)) {
           fs.unlinkSync(fromDest);
         }
-        log(`  ⟳ Moved: ${e.fromPath} → ${e.toPath}`);
+        log(chalk.cyan(`  Moved: ${e.fromPath} -> ${e.toPath}`));
         break;
       }
       case "move-conflict": {
@@ -322,7 +323,7 @@ function applyChanges(outputPath: string, changes: FileChange[], log: (...args: 
         if (fs.existsSync(fromDest)) {
           fs.unlinkSync(fromDest);
         }
-        log(`  ⟳ Moved (OpenAPI): ${e.fromPath} → ${e.toPath}`);
+        log(chalk.cyan(`  Moved (OpenAPI): ${e.fromPath} -> ${e.toPath}`));
         break;
       }
       default:
@@ -339,7 +340,9 @@ function applyChanges(outputPath: string, changes: FileChange[], log: (...args: 
 
 function printDryRun(changes: FileChange[], log: (...args: unknown[]) => void): void {
   for (const e of changes) {
-    log(`  ${kindLabel(e.kind)} ${e.path}`);
+    const label = kindLabel(e.kind);
+    const styledLabel = label.startsWith("conflict") ? chalk.red(label) : chalk.cyan(label);
+    log(`  ${styledLabel} ${e.path}`);
   }
 }
 

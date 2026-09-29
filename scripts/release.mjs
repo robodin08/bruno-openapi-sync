@@ -14,13 +14,14 @@
 import { execSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import chalk from "chalk";
 
 import packageJson from "../package.json" with { type: "json" };
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 function run(cmd, opts = {}) {
-  console.log(`  $ ${cmd}`);
+  console.log(chalk.dim(`  $ ${cmd}`));
   execSync(cmd, { cwd: root, stdio: "inherit", ...opts });
 }
 
@@ -28,7 +29,7 @@ function ensureNpmLogin() {
   try {
     run("npm whoami --registry=https://registry.npmjs.org/");
   } catch {
-    console.log("  You are not logged in to npm. Starting npm login...\n");
+    console.log(chalk.yellow("  You are not logged in to npm. Starting npm login...\n"));
     run("npm login --registry=https://registry.npmjs.org/");
   }
 }
@@ -51,46 +52,46 @@ const oldVersion = packageJson.version;
 const newVersion = bumpVersion(oldVersion, bumpArg);
 
 if (newVersion === oldVersion) {
-  console.error(`Version is already ${oldVersion} - nothing to release.`);
+  console.error(chalk.red(`Version is already ${oldVersion} - nothing to release.`));
   process.exit(1);
 }
 
-console.log(`\n🚀  Releasing ${packageJson.name}  ${oldVersion} → ${newVersion}\n`);
+console.log(chalk.cyan(`\nReleasing ${packageJson.name}  ${oldVersion} -> ${newVersion}\n`));
 
 try {
   const status = execSync("git status --porcelain", { cwd: root }).toString().trim();
   if (status) {
-    console.log("⚠  Uncommitted changes detected - they will be included in the release commit.\n");
+    console.log(chalk.yellow("Warning: uncommitted changes detected - they will be included in the release commit.\n"));
   }
 } catch {
   // git not available - proceed anyway
 }
 
-console.log("── 1/5  Running tests ──────────────────────────────────────────");
+console.log(chalk.cyan("1/5  Running tests"));
 
 if (skipTests) {
-  console.log("  ⚠  Tests skipped (--skip-tests)");
+  console.log(chalk.yellow("  Warning: tests skipped (--skip-tests)"));
 } else {
   run("npm test");
 }
 
-console.log("\n── 2/6  Checking npm authentication ────────────────────────────");
+console.log(chalk.cyan("\n2/6  Checking npm authentication"));
 ensureNpmLogin();
 
-console.log("\n── 3/6  Bumping version ────────────────────────────────────────");
+console.log(chalk.cyan("\n3/6  Bumping version"));
 run(`npm version ${newVersion} --no-git-tag-version`);
-console.log(`  package.json + package-lock.json → ${newVersion}`);
+console.log(chalk.green(`  package.json + package-lock.json -> ${newVersion}`));
 
-console.log("\n── 4/6  Committing & tagging ───────────────────────────────────");
+console.log(chalk.cyan("\n4/6  Committing & tagging"));
 run("git add -A");
 run(`git commit -m "release: v${newVersion}"`);
 run(`git tag v${newVersion}`);
 
-console.log("\n── 5/6  Pushing to remote ──────────────────────────────────────");
+console.log(chalk.cyan("\n5/6  Pushing to remote"));
 run("git push -u origin main");
 run("git push --tags");
 
-console.log("\n── 6/6  Publishing to npm ──────────────────────────────────────");
+console.log(chalk.cyan("\n6/6  Publishing to npm"));
 run("npm run publish:npm");
 
-console.log(`\n✅  Successfully released v${newVersion}\n`);
+console.log(chalk.green(`\nSuccessfully released v${newVersion}\n`));
