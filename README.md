@@ -21,7 +21,7 @@ npx bruno-openapi-sync -s ./openapi.json -o ./bruno
 
 ## Prerequisites
 
-Node.js 24 or newer is required. The Bruno CLI is installed automatically as a runtime dependency when you install this package; no global Bruno installation is needed.
+Node.js 22.12.0 or newer is required. The Bruno CLI is installed automatically as a runtime dependency when you install this package; no global Bruno installation is needed.
 
 Git is used to render diffs for changed files. The sync can still copy and delete files without Git, but changed-file diffs will not be displayed.
 
@@ -115,7 +115,9 @@ await sync({
 });
 ```
 
-`source` accepts local JSON/YAML files and HTTP(S) URLs supported by the Bruno CLI. `output` is the root directory, and the generated collection is written to `<output>/<collection-name>/`, where the collection name comes from `name` or the spec title. The `insecure` option disables TLS certificate verification for remote sources.
+`source` accepts local JSON/YAML files and HTTP(S) URLs supported by the Bruno CLI. `output` is the root directory, and the generated collection is written to `<output>/<collection-name>/`, where the collection name comes from `name` or the spec title. The `insecure` option disables TLS certificate verification for remote sources. Set `dryRun: true` to preview changes without modifying files, or `check: true` to preview changes and report a non-zero status through the CLI when changes or conflicts are found. Set `json: true` for non-interactive operation with machine-readable CLI output; it also keeps the current version when a conflict is encountered.
+
+The `sync` function returns a `SyncResult` containing the planned or applied changes, whether changes were found, and whether conflicts were detected.
 
 ## License
 
