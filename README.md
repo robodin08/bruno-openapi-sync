@@ -32,9 +32,9 @@ Usage: bruno-openapi-sync [options]
 
 Options:
   -V, --version               output the version number
-  -s, --source <path-or-url>               Path to the source file or URL (required)
-  -o, --output <path>                      Path to the Bruno output root directory (required)
-  -n, --name <name>                        name for the imported collection
+  -s, --source <path-or-url>  Path to the source file or URL (required)
+  -o, --output <path>         Path to the Bruno output root directory (required)
+  -n, --name <name>           name for the imported collection
   -i, --insecure              disable SSL certificate verification when fetching from URLs
   -y, --yes                   auto-accept all non-conflicting changes without prompting
   --dry-run                   show what would change without modifying anything
