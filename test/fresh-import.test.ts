@@ -13,10 +13,10 @@ describe("sync() - fresh import", () => {
     expect(fs.existsSync(outputDir)).toBe(true);
   });
 
-  it("exports opencollection.yml directly into the output directory", async () => {
+  it("exports opencollection.yml into the collection directory", async () => {
     const outputDir = getOutputDir();
     await sync({ source: path.join(FIXTURES, "simple/openapi.json"), output: outputDir, yes: true });
-    expect(fs.existsSync(path.join(outputDir, "opencollection.yml"))).toBe(true);
+    expect(fs.existsSync(path.join(outputDir, "Simple Test API", "opencollection.yml"))).toBe(true);
   });
 
   it("generates all expected request files for simple fixture", async () => {
@@ -25,11 +25,11 @@ describe("sync() - fresh import", () => {
     const files = listFiles(outputDir);
     expect(files).toEqual(
       expect.arrayContaining([
-        "opencollection.yml",
-        "Create user.yml",
-        "Delete user.yml",
-        "Get user by ID.yml",
-        "List users.yml",
+        path.join("Simple Test API", "opencollection.yml"),
+        path.join("Simple Test API", "Create user.yml"),
+        path.join("Simple Test API", "Delete user.yml"),
+        path.join("Simple Test API", "Get user by ID.yml"),
+        path.join("Simple Test API", "List users.yml"),
       ]),
     );
   });
@@ -37,7 +37,7 @@ describe("sync() - fresh import", () => {
   it("generates valid YAML content in request files", async () => {
     const outputDir = getOutputDir();
     await sync({ source: path.join(FIXTURES, "simple/openapi.json"), output: outputDir, yes: true });
-    const content = fs.readFileSync(path.join(outputDir, "List users.yml"), "utf-8");
+    const content = fs.readFileSync(path.join(outputDir, "Simple Test API", "List users.yml"), "utf-8");
     expect(content).toContain("List users");
     expect(content).toContain("method: GET");
   });
@@ -50,7 +50,7 @@ describe("sync() - fresh import", () => {
       name: "Custom API",
       yes: true,
     });
-    const content = fs.readFileSync(path.join(outputDir, "opencollection.yml"), "utf-8");
+    const content = fs.readFileSync(path.join(outputDir, "Custom API", "opencollection.yml"), "utf-8");
     expect(content).toContain("name: Custom API");
   });
 
@@ -58,15 +58,21 @@ describe("sync() - fresh import", () => {
     const outputDir = getOutputDir();
     await sync({ source: path.join(FIXTURES, "auth/openapi.json"), output: outputDir, yes: true });
     const files = listFiles(outputDir);
-    expect(files).toEqual(expect.arrayContaining(["opencollection.yml", "Login.yml", "Logout.yml"]));
+    expect(files).toEqual(
+      expect.arrayContaining([
+        path.join("Auth API", "opencollection.yml"),
+        path.join("Auth API", "Login.yml"),
+        path.join("Auth API", "Logout.yml"),
+      ]),
+    );
   });
 
   it("generates the petstore folder and environment structure", async () => {
     const outputDir = getOutputDir();
     await sync({ source: PETSTORE, output: outputDir, yes: true });
     const files = listFiles(outputDir);
-    expect(files).toContain("opencollection.yml");
-    expect(files.some((file) => file.startsWith("pet" + path.sep))).toBe(true);
-    expect(files.some((file) => file.startsWith("environments" + path.sep))).toBe(true);
+    expect(files).toContain(path.join("Swagger Petstore", "opencollection.yml"));
+    expect(files.some((file) => file.startsWith(path.join("Swagger Petstore", "pet") + path.sep))).toBe(true);
+    expect(files.some((file) => file.startsWith(path.join("Swagger Petstore", "environments") + path.sep))).toBe(true);
   });
 });

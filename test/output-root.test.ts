@@ -7,14 +7,27 @@ import { FIXTURES, listFiles, useTestOutput } from "./helpers.js";
 
 const getOutputDir = useTestOutput();
 
-describe("sync() - direct output root", () => {
-  it("replaces the output root when a different spec is synced there", async () => {
+describe("sync() - output root with collection subdirectory", () => {
+  it("creates a collection subdirectory named after the spec title", async () => {
+    const outputDir = getOutputDir();
+    await sync({ source: path.join(FIXTURES, "simple/openapi.json"), output: outputDir, yes: true });
+    const files = listFiles(outputDir);
+    expect(files).toEqual(expect.arrayContaining([path.join("Simple Test API", "opencollection.yml")]));
+  });
+
+  it("keeps different collections side by side in the same root", async () => {
     const outputDir = getOutputDir();
     await sync({ source: path.join(FIXTURES, "simple/openapi.json"), output: outputDir, yes: true });
     await sync({ source: path.join(FIXTURES, "auth/openapi.json"), output: outputDir, yes: true });
     const files = listFiles(outputDir);
-    expect(files).toEqual(expect.arrayContaining(["opencollection.yml", "Login.yml", "Logout.yml"]));
-    expect(files).not.toContain("List users.yml");
+    expect(files).toEqual(
+      expect.arrayContaining([
+        path.join("Simple Test API", "opencollection.yml"),
+        path.join("Simple Test API", "List users.yml"),
+        path.join("Auth API", "Login.yml"),
+        path.join("Auth API", "Logout.yml"),
+      ]),
+    );
   });
 
   it("keeps separate output directories independent", async () => {
@@ -24,8 +37,8 @@ describe("sync() - direct output root", () => {
     try {
       await sync({ source: path.join(FIXTURES, "simple/openapi.json"), output: apiOut, yes: true });
       await sync({ source: path.join(FIXTURES, "auth/openapi.json"), output: authOut, yes: true });
-      expect(listFiles(apiOut)).toContain("Create user.yml");
-      expect(listFiles(authOut)).toContain("Login.yml");
+      expect(listFiles(apiOut)).toContain(path.join("Simple Test API", "Create user.yml"));
+      expect(listFiles(authOut)).toContain(path.join("Auth API", "Login.yml"));
     } finally {
       fs.rmSync(parent, { recursive: true, force: true });
     }

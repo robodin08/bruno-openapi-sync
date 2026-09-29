@@ -42,11 +42,11 @@ describe("sync() - source and path edge cases", () => {
     const spacedSource = path.join(sourceDir, "openapi.json");
     fs.copyFileSync(path.join(FIXTURES, "simple/openapi.json"), spacedSource);
     await sync({ source: spacedSource, output: outputDir, yes: true });
-    expect(fs.existsSync(path.join(outputDir, "opencollection.yml"))).toBe(true);
+    expect(fs.existsSync(path.join(outputDir, "Simple Test API", "opencollection.yml"))).toBe(true);
 
     fs.rmSync(outputDir, { recursive: true, force: true });
     await sync({ source: path.resolve(FIXTURES, "yaml/openapi.yaml"), output: outputDir, yes: true });
-    expect(fs.existsSync(path.join(outputDir, "opencollection.yml"))).toBe(true);
+    expect(fs.existsSync(path.join(outputDir, "YAML API", "opencollection.yml"))).toBe(true);
 
     fs.rmSync(sourceDir, { recursive: true, force: true });
   });
@@ -55,8 +55,9 @@ describe("sync() - source and path edge cases", () => {
     const outputDir = getOutputDir();
     const deep = path.join(outputDir, "a", "b", "c");
     await sync({ source: path.join(FIXTURES, "simple/openapi.json"), output: deep, yes: true });
-    expect(fs.existsSync(path.join(deep, "opencollection.yml"))).toBe(true);
-    const requestFiles = listFiles(deep).filter((file) => file.endsWith(".yml") && file !== "opencollection.yml");
+    const collectionDir = path.join(deep, "Simple Test API");
+    expect(fs.existsSync(path.join(collectionDir, "opencollection.yml"))).toBe(true);
+    const requestFiles = listFiles(collectionDir).filter((file) => file.endsWith(".yml") && file !== "opencollection.yml");
     expect(requestFiles.every((file) => !file.includes(path.sep))).toBe(true);
   });
 });

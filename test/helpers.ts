@@ -36,6 +36,10 @@ export function useTestOutput(): () => string {
     if (fs.existsSync(outputDir)) {
       fs.rmSync(outputDir, { recursive: true, force: true });
     }
+    const stateDir = outputDir + ".bruno-openapi-sync";
+    if (fs.existsSync(stateDir)) {
+      fs.rmSync(stateDir, { recursive: true, force: true });
+    }
     for (const entry of fs.readdirSync(path.dirname(outputDir), { withFileTypes: true })) {
       if (entry.isDirectory() && entry.name.startsWith(".bruno-sync-tmp-")) {
         fs.rmSync(path.join(path.dirname(outputDir), entry.name), { recursive: true, force: true });

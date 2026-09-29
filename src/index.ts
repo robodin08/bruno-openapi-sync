@@ -14,8 +14,29 @@ export function createProgram(): Command {
     .requiredOption("-o, --output <path>", "Path to the Bruno output directory (required)")
     .option("-n, --name <name>", "name for the imported collection")
     .option("-i, --insecure", "disable SSL certificate verification when fetching from URLs")
-    .option("-y, --yes", "auto-accept all changes without prompting")
-    .action(sync);
+    .option("-y, --yes", "auto-accept all non-conflicting changes without prompting")
+    .option("--dry-run", "show what would change without modifying anything")
+    .option("--check", "exit non-zero if synchronization would change or conflict (implies --dry-run)")
+    .option("--json", "emit machine-readable JSON results (implies non-interactive)")
+    .action(async (options) => {
+      const result = await sync(options);
+      if (options.json) {
+        const jsonResult = {
+          ...result,
+          changes: result.changes.map(({ path, kind, status, fromPath, toPath }) => ({
+            path,
+            kind,
+            status,
+            fromPath,
+            toPath,
+          })),
+        };
+        process.stdout.write(JSON.stringify(jsonResult, null, 2) + "\n");
+      }
+      if (options.check && (result.hasChanges || result.hasConflicts)) {
+        process.exitCode = 1;
+      }
+    });
   return program;
 }
 

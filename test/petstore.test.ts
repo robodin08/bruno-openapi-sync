@@ -6,19 +6,21 @@ import { PETSTORE, listFiles, useTestOutput } from "./helpers.js";
 
 const getOutputDir = useTestOutput();
 
+const COLLECTION = "Swagger Petstore";
+
 describe("sync() - petstore", () => {
   it("generates the collection, environment, folder, and request files", async () => {
     const outputDir = getOutputDir();
     await sync({ source: PETSTORE, output: outputDir, yes: true });
     const files = listFiles(outputDir);
-    expect(fs.readFileSync(path.join(outputDir, "opencollection.yml"), "utf-8")).toContain("opencollection");
-    expect(files).toContain(path.join("environments", "Environment 1.yml"));
-    expect(files).toContain(path.join("pet", "folder.yml"));
+    expect(fs.readFileSync(path.join(outputDir, COLLECTION, "opencollection.yml"), "utf-8")).toContain("opencollection");
+    expect(files).toContain(path.join(COLLECTION, "environments", "Environment 1.yml"));
+    expect(files).toContain(path.join(COLLECTION, "pet", "folder.yml"));
     expect(files).toEqual(
       expect.arrayContaining([
-        path.join("pet", "Add a new pet to the store.yml"),
-        path.join("pet", "Finds Pets by status.yml"),
-        path.join("pet", "Finds Pets by status (GET).yml"),
+        path.join(COLLECTION, "pet", "Add a new pet to the store.yml"),
+        path.join(COLLECTION, "pet", "Finds Pets by status.yml"),
+        path.join(COLLECTION, "pet", "Finds Pets by status (GET).yml"),
       ]),
     );
   });

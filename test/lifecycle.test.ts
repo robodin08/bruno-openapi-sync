@@ -48,9 +48,9 @@ describe("sync() - idempotent re-run", () => {
     const source = path.join(FIXTURES, "simple/openapi.json");
     await sync({ source, output: outputDir, yes: true });
     const firstRun = listFiles(outputDir);
-    const contentBefore = fs.readFileSync(path.join(outputDir, "List users.yml"), "utf-8");
+    const contentBefore = fs.readFileSync(path.join(outputDir, "Simple Test API", "List users.yml"), "utf-8");
     await sync({ source, output: outputDir, yes: true });
     expect(listFiles(outputDir)).toEqual(firstRun);
-    expect(fs.readFileSync(path.join(outputDir, "List users.yml"), "utf-8")).toBe(contentBefore);
+    expect(fs.readFileSync(path.join(outputDir, "Simple Test API", "List users.yml"), "utf-8")).toBe(contentBefore);
   });
 });
