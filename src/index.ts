@@ -5,6 +5,7 @@ import { Command } from "commander";
 import chalk from "chalk";
 import packageJson from "../package.json" with { type: "json" };
 import { sync } from "./sync.js";
+import { checkForUpdate, printUpdateNotification } from "./update-check.js";
 
 export function createProgram(): Command {
   const program = new Command();
@@ -20,6 +21,14 @@ export function createProgram(): Command {
     .option("--check", "exit non-zero if synchronization would change or conflict (implies --dry-run)")
     .option("--json", "emit machine-readable JSON results (implies non-interactive)")
     .action(async (options) => {
+      if (!options.json) {
+        const latestVersion = await checkForUpdate(packageJson.version);
+
+        if (latestVersion) {
+          printUpdateNotification(packageJson.version, latestVersion);
+        }
+      }
+
       const result = await sync(options);
 
       if (options.json) {
