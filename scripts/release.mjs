@@ -15,6 +15,7 @@ import { execSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import chalk from "chalk";
+import { eq, inc, valid } from "semver";
 
 import packageJson from "../package.json" with { type: "json" };
 
@@ -35,12 +36,18 @@ function ensureNpmLogin() {
 }
 
 function bumpVersion(current, bump) {
-  const [major, minor, patch] = current.split(".").map(Number);
-  if (bump === "major") return `${major + 1}.0.0`;
-  if (bump === "minor") return `${major}.${minor + 1}.0`;
-  if (bump === "patch") return `${major}.${minor}.${patch + 1}`;
-  // Explicit semver string - validate format
-  if (/^\d+\.\d+\.\d+$/.test(bump)) return bump;
+  if (!valid(current)) {
+    throw new Error(`Invalid current package version: "${current}"`);
+  }
+
+  if (bump === "major" || bump === "minor" || bump === "patch") {
+    const nextVersion = inc(current, bump);
+    if (nextVersion) return nextVersion;
+  }
+
+  const explicitVersion = valid(bump);
+  if (explicitVersion) return explicitVersion;
+
   throw new Error(`Invalid bump type or version: "${bump}". Use major | minor | patch | x.y.z`);
 }
 
@@ -51,7 +58,7 @@ const bumpArg = args.find((arg) => !arg.startsWith("--")) ?? "patch";
 const oldVersion = packageJson.version;
 const newVersion = bumpVersion(oldVersion, bumpArg);
 
-if (newVersion === oldVersion) {
+if (eq(newVersion, oldVersion)) {
   console.error(chalk.red(`Version is already ${oldVersion} - nothing to release.`));
   process.exit(1);
 }

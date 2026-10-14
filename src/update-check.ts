@@ -1,9 +1,10 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import packageJson from "../package.json" with { type: "json" };
 import chalk from "chalk";
+import { gt, valid } from "semver";
 
-const PACKAGE_NAME = "bruno-openapi-sync";
 const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 1000;
 
@@ -13,22 +14,7 @@ interface UpdateCache {
 }
 
 function getCachePath(): string {
-  return join(process.env.XDG_CACHE_HOME || join(homedir(), ".cache"), PACKAGE_NAME, "update-check.json");
-}
-
-function isNewerVersion(current: string, latest: string): boolean {
-  const currentParts = current.split(".").map(Number);
-  const latestParts = latest.split(".").map(Number);
-
-  for (let i = 0; i < 3; i++) {
-    const currentPart = currentParts[i] ?? 0;
-    const latestPart = latestParts[i] ?? 0;
-
-    if (latestPart > currentPart) return true;
-    if (latestPart < currentPart) return false;
-  }
-
-  return false;
+  return join(process.env.XDG_CACHE_HOME || join(homedir(), ".cache"), packageJson.name, "update-check.json");
 }
 
 async function readCache(): Promise<UpdateCache | undefined> {
@@ -56,7 +42,7 @@ async function fetchLatestVersion(): Promise<string | undefined> {
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const response = await fetch(`https://registry.npmjs.org/${PACKAGE_NAME}/latest`, {
+    const response = await fetch(`https://registry.npmjs.org/${packageJson.name}/latest`, {
       signal: controller.signal,
       headers: {
         Accept: "application/json",
@@ -67,7 +53,7 @@ async function fetchLatestVersion(): Promise<string | undefined> {
 
     const data = (await response.json()) as { version?: unknown };
 
-    return typeof data.version === "string" ? data.version : undefined;
+    return typeof data.version === "string" && valid(data.version) ? data.version : undefined;
   } catch {
     return undefined;
   } finally {
@@ -76,10 +62,14 @@ async function fetchLatestVersion(): Promise<string | undefined> {
 }
 
 export async function checkForUpdate(currentVersion: string): Promise<string | undefined> {
+  if (!valid(currentVersion)) {
+    throw new Error(`Invalid current package version: "${currentVersion}"`);
+  }
+
   const cache = await readCache();
 
   if (cache && Date.now() - cache.checkedAt < CACHE_TTL_MS) {
-    if (cache.latestVersion && isNewerVersion(currentVersion, cache.latestVersion)) {
+    if (cache.latestVersion && valid(cache.latestVersion) && gt(cache.latestVersion, currentVersion)) {
       return cache.latestVersion;
     }
 
@@ -93,7 +83,7 @@ export async function checkForUpdate(currentVersion: string): Promise<string | u
     latestVersion,
   });
 
-  if (latestVersion && isNewerVersion(currentVersion, latestVersion)) {
+  if (latestVersion && gt(latestVersion, currentVersion)) {
     return latestVersion;
   }
 
@@ -103,6 +93,6 @@ export async function checkForUpdate(currentVersion: string): Promise<string | u
 export function printUpdateNotification(currentVersion: string, latestVersion: string): void {
   process.stderr.write(
     `\n${chalk.yellow(`Update available: ${currentVersion} -> ${latestVersion}`)}\n` +
-      `${chalk.dim(`Run: npm install -g ${PACKAGE_NAME}@latest`)}\n\n`,
+      `${chalk.dim(`Run: npm install -g ${packageJson.name}@latest`)}\n\n`,
   );
 }
