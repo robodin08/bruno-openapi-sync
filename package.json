@@ -38,7 +38,9 @@
     "publish:npm": "npm publish --access public",
     "release": "node scripts/release.mjs",
     "release:minor": "node scripts/release.mjs minor",
-    "release:major": "node scripts/release.mjs major"
+    "release:major": "node scripts/release.mjs major",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "files": [
     "dist"
@@ -53,6 +55,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.20.4",
+    "prettier": "^3.9.10",
     "rimraf": "^6.1.3",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",

@@ -8,5 +8,5 @@ paths:
       operationId: health
       summary: Health check
       responses:
-        "200":
+        '200':
           description: OK

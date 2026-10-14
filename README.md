@@ -105,14 +105,14 @@ The synchronization state lives in `<output>/<collection>.bruno-openapi-sync/`. 
 ## Programmatic API
 
 ```ts
-import { sync } from "bruno-openapi-sync";
+import { sync } from 'bruno-openapi-sync'
 
 await sync({
-  source: "./openapi.json",
-  output: "./bruno",
-  name: "OpenAPI definition",
+  source: './openapi.json',
+  output: './bruno',
+  name: 'OpenAPI definition',
   yes: true,
-});
+})
 ```
 
 `source` accepts local JSON/YAML files and HTTP(S) URLs supported by the Bruno CLI. `output` is the root directory, and the generated collection is written to `<output>/<collection-name>/`, where the collection name comes from `name` or the spec title. The `insecure` option disables TLS certificate verification for remote sources. Set `dryRun: true` to preview changes without modifying files, or `check: true` to preview changes and report a non-zero status through the CLI when changes or conflicts are found. Set `json: true` for non-interactive operation with machine-readable CLI output; it also keeps the current version when a conflict is encountered.
